@@ -1,0 +1,45 @@
+# Local environments, editors and system files
+.env
+.env.*
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.idea/
+.vscode/
+.cache/
+.pytest_cache/
+.mypy_cache/
+node_modules/
+playwright-report/
+test-results/
+*user-data*/
+
+# Credentials and browser/session artifacts
+*cookie*
+*Cookie*
+*session*
+*Session*
+*.pem
+*.key
+
+# Local datasets, generated results and raw browser evidence
+*.log
+*.part
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.gz
+*.jsonl
+data/raw/**
+!data/raw/.gitkeep
+data/interim/**
+!data/interim/.gitkeep
+data/processed/**
+!data/processed/.gitkeep
+data/realtime/**
+!data/realtime/.gitkeep
+outputs/**
+!outputs/.gitkeep

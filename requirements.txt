@@ -1,0 +1,10 @@
+# Data processing and model evaluation (validated local versions)
+pandas==2.3.3
+scikit-learn==1.6.1
+
+# Realtime HTTP probe and offline HTML parsing
+requests==2.32.5
+beautifulsoup4==4.15.0
+
+# Playwright capture uses a separate browser/CLI environment;
+# the offline replay and SQL analysis modules use the packages above or the standard library.
