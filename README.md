@@ -137,17 +137,3 @@ python3 -B -m src.realtime.replay_saved_html --html data/realtime/raw/garden_hos
 4. 在 Train/Validation 的历史时间滚动窗口做特征与模型选择，再用未见时期评估；异常阈值也应在验证期确定。
 5. 增加 proxy 数据源健康监控、受控重试和告警；遇明确访问限制时停止对应采集路径。
 6. 只有在规模和访问条件确有需要时，再评估 Scrapy 或分布式调度；另行设计 dashboard / monitoring layer。
-
-## Interview Talking Points
-
-**30 秒介绍：**我做了一个 Garden 竞品监控与需求热度代理预测项目。历史侧用 Amazon Reviews 2023 的 344 万条 5-core interaction，只按 2019 年筛选 5,000 个父商品，构建 18 万行商品月数据，并用时间切分比较上月计数 Baseline 与 RandomForest；2022 Test MAE 从 0.995867 降到 0.935867。实时侧保存一次 Amazon.sg 搜索的 20 个真实商品，用 SQLite 做价格和评分 SQL 分析。两条链没有可信商品映射，所以没有强行 JOIN，也不把评论交互称为销量。
-
-**2 分钟介绍：**这个项目从 Garden 运营问题出发，但公开数据没有真实销量，因此我把任务定义为预测未来月的 rating interaction 热度代理。官方 Patio_Lawn_and_Garden 完整 5-core 有 3,441,178 条记录；我仅凭 2019 历史固定 5,000 个 `parent_asin`，2019 用于预热，2020–2021 训练，2022 测试。构建了包含零交互月份的 180,000 行商品月网格；11 个 lag、rolling、历史评分等特征都只看预测月之前。先用 `lag_1` 做强 Baseline，MAE 0.995867；固定参数 RandomForest 是 0.935867，改善 6.02%。误差分析发现零 target 常被小幅高估，高热度月份更常被低估，且 Test P95 阈值只用于事后诊断。实时侧先遇到 Amazon.com `requests` 503，控制实验发现 Amazon.sg 的 `requests` 也 503，而普通浏览器取得新加坡站页面；没有证据证明具体内部反爬原因。成功 HTML 离线解析 20 个商品并存入 SQLite，SQL 可以看当前价格档、评分和卡片位置；因为仅一张有效快照，不能说有趋势。历史父商品和实时 ASIN 的交集为 0，也没有可信映射，因此系统目前是两个互补模块，商品级融合留待未来。
-
-**最值得讲的 5 个技术难点：**
-
-1. **Cohort 设计：**只用 2019 历史固定商品，避免按未来活跃度筛选；同时诚实说明 5-core 全期筛选的源数据偏差。
-2. **时序特征防泄漏：**补全零交互月，明确月初预测边界，让 lag、rolling、历史 rating 都止于上月底，排除 2023 metadata 快照。
-3. **公平评估：**固定 2022 Test，不随机切分；先建立简单 Baseline，再只训练一组参数的 RF，报告约 6% 改善及其局限。
-4. **误差方向：**高估次数更多但平均幅度较小；看 signed error 和 target 分段，解释为什么只数错误方向会误导。
-5. **采集排障与 SQL 边界：**保存 503 原始证据，做客户端 × 市场对照而不猜反爬根因；离线重放、SQLite 快照和 `LAG()` 查询可解释，同时拒绝无证据的跨市场/父子 ID JOIN。
